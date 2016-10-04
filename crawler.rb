@@ -44,10 +44,13 @@ class BuildTree
 		print "\nGo to [p]arent node? or [l]eft child? " if root.right_child.nil?
 		print "\nGo to [p]arent node? or [l/r] child? " unless root.right_child.nil?
 		puts "OR"
-		print "Type 's' to seek for a value: "
+		puts "Type 'bfs' for breadth first search "
+		puts "Type 'dfs' for depth first search "
+		puts "Type 'dfsr' for recursive dfs "
+		print ">> "
 		answer = gets.strip
-
-		breadth_first_search if answer == 's'
+		options = ['bfs', 'dfs', 'dfsr']
+		search_type(answer) if options.include?(answer)
 		to_parent(root) if answer == 'p'
 		to_child(root, answer) if (answer == 'l' && !root.left_child.nil?) || (answer == 'r' && !root.right_child.nil?)
 	end
@@ -71,9 +74,22 @@ class BuildTree
 		location(node)
 	end
 
-	def breadth_first_search
+	def search_type(answer)
 		print "Type the value you are looking for: "
 		target = Integer(gets)
+		case answer
+		when 'bfs'
+			breadth_first_search(target)
+		when 'dfs'
+			depth_first_search(target)
+		when 'dfsr'
+			resp = dfs_rec(@root, target)
+			puts "NODE NOT FOUND!" if resp.nil?
+			puts "#{resp.value} FOUND!: #{resp}" if resp.value == target
+		end
+	end
+
+	def breadth_first_search(target)
 		found = false
 		queue = [@root]
 		begin
@@ -88,16 +104,40 @@ class BuildTree
 		end until queue.empty?
 		if found == true
 			puts "Node value: #{current_root.value} found!: #{current_root}"
-			puts "Child: #{current_root.left_child.value} & #{current_root.right_child.value}"
 		else
 			puts "#{target} NOT FOUND"
 		end
 	end
 
 	def depth_first_search(target)
+		stack_call = [@root]
+		found = false
+		current_root = @root
+		begin
+			if current_root.value == target
+				found = true
+				break
+			elsif current_root.left_child.nil?
+				current_root = stack_call.shift.right_child
+			else
+				current_root = current_root.left_child
+			end
+			unless current_root.right_child.nil?
+				stack_call << current_root
+			end
+		end until current_root.nil?
+		if found == true
+			puts "#{current_root.value} FOUND!: #{current_root}"
+		else
+			puts "NODE NOT FOUND!"
+		end
 	end
 
-	def dfs_rec(target)
+	def dfs_rec(target, value)
+		return target if target == nil
+		dfs_rec(target.left_child, value)
+		return target if target.value == value
+		dfs_rec(target.right_child, value)
 	end
 
 end
